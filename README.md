@@ -2,6 +2,8 @@
 
 A static, mobile-friendly Yu-Gi-Oh! picker inspired by the FavoriteYGO monster-category picker. This version lets a visitor choose one favorite Monster Card for each of the game's 25 standard monster Types.
 
+**Live site:** https://ostickney.github.io/FavoriteYGO-Types/
+
 ## Features
 
 - All 25 standard monster Types in a five-by-five desktop poster
@@ -13,7 +15,7 @@ A static, mobile-friendly Yu-Gi-Oh! picker inspired by the FavoriteYGO monster-c
 
 ## GitHub Pages
 
-The site is made entirely of static files. To publish it, put the files on the repository's default branch, then choose **Settings → Pages → Deploy from a branch** and select the repository root.
+The deployment workflow publishes the static site to GitHub Pages whenever the `main` branch changes. The repository's Pages source should remain set to **GitHub Actions**.
 
 ## Data and image note
 
