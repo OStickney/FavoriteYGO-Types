@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Choose your favorite Yu-Gi-Oh! monster card from each of the game's 25 standard Types and download the finished poster."
+    />
+    <meta name="theme-color" content="#292929" />
+    <title>Favorite Yu-Gi-Oh! Types</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <main class="site-shell">
+      <div class="language-row" aria-label="Language">
+        <button class="language-pill" type="button">English</button>
+      </div>
+
+      <section class="poster" aria-labelledby="page-title">
+        <header class="poster-header" aria-hidden="true">
+          <span>What’s Your Favorite</span>
+          <span class="ygo-mark">
+            <b>YU-GI-OH!</b>
+            <small>TRADING CARD GAME</small>
+          </span>
+          <span>Type?</span>
+        </header>
+
+        <h1 id="page-title" class="sr-only">
+          Favorite Yu-Gi-Oh! Monster Type Picker
+        </h1>
+
+        <div id="typeGrid" class="type-grid"></div>
+
+        <div class="poster-signature" aria-hidden="true">
+          Favorite YGO Types
+        </div>
+      </section>
+
+      <nav class="action-row" aria-label="Picker actions">
+        <button id="downloadButton" class="gold-button" type="button">
+          Download Image
+        </button>
+        <button
+          id="clearAllButton"
+          class="gold-button gold-button--quiet"
+          type="button"
+          disabled
+        >
+          Clear All
+        </button>
+      </nav>
+
+      <p class="data-credit">
+        Card data and images supplied by YGOPRODeck. This fan-made picker is not
+        affiliated with or endorsed by Konami.
+      </p>
+    </main>
+
+    <div id="modalBackdrop" class="modal-backdrop" hidden>
+      <section
+        class="picker-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pickerHeading"
+      >
+        <header class="picker-toolbar">
+          <div class="picker-title-group">
+            <span id="pickerColor" class="picker-color"></span>
+            <h2 id="pickerHeading">Choose a card</h2>
+          </div>
+          <button
+            id="closeButton"
+            class="close-button"
+            type="button"
+            aria-label="Close card picker"
+          >
+            ×
+          </button>
+        </header>
+
+        <div class="search-row">
+          <input
+            id="searchInput"
+            type="search"
+            placeholder="Search cards…"
+            autocomplete="off"
+          />
+          <button id="clearSearchButton" type="button" disabled>Clear</button>
+        </div>
+
+        <div id="pickerResults" class="picker-results" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <template id="cardBackTemplate">
+      <span class="card-back" aria-hidden="true">
+        <span class="card-back__swirl"></span>
+        <span class="card-back__core"></span>
+      </span>
+    </template>
+  </body>
+</html>
