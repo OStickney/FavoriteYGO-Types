@@ -309,38 +309,6 @@ async function canvasImage(url) {
   }
 }
 
-function drawPlaceholder(context, x, y, width, height) {
-  const gradient = context.createRadialGradient(
-    x + width / 2,
-    y + height / 2,
-    10,
-    x + width / 2,
-    y + height / 2,
-    height * 0.72,
-  );
-  gradient.addColorStop(0, "#050506");
-  gradient.addColorStop(0.34, "#4c1b0f");
-  gradient.addColorStop(0.68, "#d06a21");
-  gradient.addColorStop(1, "#1b0908");
-  context.fillStyle = gradient;
-  context.fillRect(x + 6, y + 6, width - 12, height - 12);
-  context.strokeStyle = "rgba(255, 167, 78, .8)";
-  context.lineWidth = 7;
-  for (let ring = 0; ring < 7; ring += 1) {
-    context.beginPath();
-    context.ellipse(
-      x + width / 2,
-      y + height / 2,
-      25 + ring * 19,
-      43 + ring * 23,
-      -0.65,
-      ring * 0.6,
-      ring * 0.6 + Math.PI * 1.55,
-    );
-    context.stroke();
-  }
-}
-
 async function downloadPoster() {
   const originalText = elements.downloadButton.textContent;
   elements.downloadButton.disabled = true;
@@ -359,16 +327,47 @@ async function downloadPoster() {
     context.lineWidth = 5;
     context.strokeRect(32, 32, canvas.width - 64, canvas.height - 64);
 
-    context.textAlign = "center";
+    const [logoImage, cardBackImage, loadedImages] = await Promise.all([
+      canvasImage("tcg-logo.png"),
+      canvasImage("card-back.png"),
+      Promise.all(
+        MONSTER_TYPES.map((type) => {
+          const selected = state.selections[type.name];
+          return selected ? canvasImage(cardImage(selected, true)) : null;
+        }),
+      ),
+    ]);
+
+    context.textAlign = "left";
     context.fillStyle = "#17130f";
     context.font = "700 64px Georgia, serif";
-    context.fillText("WHAT’S YOUR FAVORITE", 750, 102);
-    context.fillStyle = "#be1e2d";
-    context.font = "900 80px Georgia, serif";
-    context.fillText("YU-GI-OH!", 750, 183);
-    context.fillStyle = "#17130f";
-    context.font = "700 55px Georgia, serif";
-    context.fillText("MONSTER TYPE?", 750, 245);
+    context.textBaseline = "middle";
+    const heading = "WHAT’S YOUR FAVORITE";
+    const ending = "TYPE?";
+    const logoWidth = 330;
+    const logoHeight = logoWidth * (166 / 500);
+    const headingWidth = context.measureText(heading).width;
+    const endingWidth = context.measureText(ending).width;
+    const headingGap = 20;
+    const headingX =
+      (canvas.width -
+        (headingWidth + logoWidth + endingWidth + headingGap * 2)) /
+      2;
+    context.fillText(heading, headingX, 135);
+    if (logoImage) {
+      context.drawImage(
+        logoImage,
+        headingX + headingWidth + headingGap,
+        135 - logoHeight / 2,
+        logoWidth,
+        logoHeight,
+      );
+    }
+    context.fillText(
+      ending,
+      headingX + headingWidth + logoWidth + headingGap * 2,
+      135,
+    );
 
     const startX = 80;
     const startY = 275;
@@ -376,13 +375,6 @@ async function downloadPoster() {
     const slotHeight = 313;
     const gapX = 20;
     const gapY = 15;
-
-    const loadedImages = await Promise.all(
-      MONSTER_TYPES.map((type) => {
-        const selected = state.selections[type.name];
-        return selected ? canvasImage(cardImage(selected, true)) : null;
-      }),
-    );
 
     MONSTER_TYPES.forEach((type, index) => {
       const column = index % 5;
@@ -410,8 +402,17 @@ async function downloadPoster() {
       context.fillRect(imageX, imageY, imageWidth, imageHeight);
       if (loaded) {
         context.drawImage(loaded, imageX, imageY, imageWidth, imageHeight);
+      } else if (cardBackImage) {
+        context.drawImage(
+          cardBackImage,
+          imageX,
+          imageY,
+          imageWidth,
+          imageHeight,
+        );
       } else {
-        drawPlaceholder(context, imageX, imageY, imageWidth, imageHeight);
+        context.fillStyle = "#2d1510";
+        context.fillRect(imageX, imageY, imageWidth, imageHeight);
       }
       context.strokeStyle = "#3a312a";
       context.lineWidth = 3;
