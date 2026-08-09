@@ -147,19 +147,23 @@ input:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 14px;
   margin: 0 0 26px;
   color: #090807;
-  font-size: clamp(2.2rem, 4.2vw, 3.9rem);
+  font-size: clamp(1.8rem, 3.25vw, 2.55rem);
   font-weight: 700;
   line-height: 0.98;
   text-align: center;
   letter-spacing: -0.035em;
 }
 
+.poster-header > span:not(.ygo-mark) {
+  white-space: nowrap;
+}
+
 .ygo-mark {
   display: block;
-  width: clamp(220px, 25vw, 330px);
+  width: clamp(190px, 21vw, 260px);
   flex: 0 1 auto;
   line-height: 0;
 }
@@ -572,12 +576,12 @@ input:focus-visible {
   }
 
   .poster-header {
-    gap: 12px;
-    font-size: clamp(1.65rem, 5.1vw, 2.9rem);
+    gap: 10px;
+    font-size: clamp(1.45rem, 4vw, 2.15rem);
   }
 
   .ygo-mark {
-    width: clamp(170px, 26vw, 240px);
+    width: clamp(155px, 23vw, 215px);
   }
 
   .type-grid {
@@ -607,7 +611,7 @@ input:focus-visible {
     flex-wrap: wrap;
     gap: 7px 10px;
     margin-bottom: 20px;
-    font-size: clamp(1.65rem, 8vw, 2.45rem);
+    font-size: clamp(1.45rem, 6.4vw, 2rem);
   }
 
   .poster-header > span:first-child {
@@ -615,7 +619,7 @@ input:focus-visible {
   }
 
   .ygo-mark {
-    width: clamp(154px, 45vw, 220px);
+    width: clamp(140px, 38vw, 190px);
   }
 
   .type-grid {

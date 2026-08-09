@@ -459,21 +459,23 @@ async function downloadPoster() {
     context.fillStyle = "#17130f";
     context.textBaseline = "middle";
     const heading = "WHAT’S YOUR FAVORITE";
-    const ending = "TYPE?";
+    const ending = "CARD OF EACH TYPE?";
     const logoWidth = 300;
     const logoHeight = logoWidth * (166 / 500);
+    const headingGap = 18;
+    const availableTextWidth =
+      canvas.width - logoWidth - headingGap * 2 - 140;
     setFittedCanvasFont(
       context,
       `${heading} ${ending}`,
-      880,
-      56,
-      44,
+      availableTextWidth,
+      52,
+      36,
       "700",
       "Georgia, serif",
     );
     const headingWidth = context.measureText(heading).width;
     const endingWidth = context.measureText(ending).width;
-    const headingGap = 18;
     const headingX =
       (canvas.width -
         (headingWidth + logoWidth + endingWidth + headingGap * 2)) /
