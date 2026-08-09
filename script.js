@@ -312,7 +312,20 @@ async function canvasImage(url) {
 }
 
 function preloadExportImage(card) {
-  const url = cardImage(card, true);
+  const sourceUrl = cardImage(card, true);
+  if (!sourceUrl) return Promise.resolve(null);
+
+  let url = sourceUrl;
+  try {
+    const parsed = new URL(sourceUrl);
+    if (parsed.hostname === "images.ygoprodeck.com") {
+      const sourcePath = `${parsed.hostname}${parsed.pathname}${parsed.search}`;
+      url = `https://wsrv.nl/?url=${encodeURIComponent(sourcePath)}&output=jpg`;
+    }
+  } catch {
+    url = sourceUrl;
+  }
+
   if (!url) return Promise.resolve(null);
   if (!state.exportImageCache.has(url)) {
     state.exportImageCache.set(url, canvasImage(url));
@@ -384,6 +397,24 @@ async function savePosterImage(canvas) {
   downloadBlob(blob, filename);
 }
 
+function setFittedCanvasFont(
+  context,
+  text,
+  maxWidth,
+  maxSize,
+  minSize,
+  weight,
+  family,
+) {
+  let size = maxSize;
+  while (size > minSize) {
+    context.font = `${weight} ${size}px ${family}`;
+    if (context.measureText(text).width <= maxWidth) break;
+    size -= 1;
+  }
+  context.font = `${weight} ${size}px ${family}`;
+}
+
 async function downloadPoster() {
   const originalText = elements.downloadButton.textContent;
   elements.downloadButton.disabled = true;
@@ -392,7 +423,7 @@ async function downloadPoster() {
   try {
     const canvas = document.createElement("canvas");
     canvas.width = 1500;
-    canvas.height = 1980;
+    canvas.height = 2180;
     const context = canvas.getContext("2d");
     if (!context) return;
 
@@ -413,27 +444,46 @@ async function downloadPoster() {
       ),
     ]);
 
+    const failedTypes = MONSTER_TYPES.filter(
+      (type, index) => state.selections[type.name] && !loadedImages[index],
+    );
+    if (failedTypes.length > 0) {
+      throw new Error(
+        `Could not load selected artwork for ${failedTypes
+          .map((type) => type.name)
+          .join(", ")}`,
+      );
+    }
+
     context.textAlign = "left";
     context.fillStyle = "#17130f";
-    context.font = "700 64px Georgia, serif";
     context.textBaseline = "middle";
     const heading = "WHAT’S YOUR FAVORITE";
     const ending = "TYPE?";
-    const logoWidth = 330;
+    const logoWidth = 300;
     const logoHeight = logoWidth * (166 / 500);
+    setFittedCanvasFont(
+      context,
+      `${heading} ${ending}`,
+      880,
+      56,
+      44,
+      "700",
+      "Georgia, serif",
+    );
     const headingWidth = context.measureText(heading).width;
     const endingWidth = context.measureText(ending).width;
-    const headingGap = 20;
+    const headingGap = 18;
     const headingX =
       (canvas.width -
         (headingWidth + logoWidth + endingWidth + headingGap * 2)) /
       2;
-    context.fillText(heading, headingX, 135);
+    context.fillText(heading, headingX, 120);
     if (logoImage) {
       context.drawImage(
         logoImage,
         headingX + headingWidth + headingGap,
-        135 - logoHeight / 2,
+        120 - logoHeight / 2,
         logoWidth,
         logoHeight,
       );
@@ -441,15 +491,21 @@ async function downloadPoster() {
     context.fillText(
       ending,
       headingX + headingWidth + logoWidth + headingGap * 2,
-      135,
+      120,
     );
 
     const startX = 80;
-    const startY = 275;
+    const startY = 220;
     const slotWidth = 252;
-    const slotHeight = 313;
+    const labelHeight = 32;
+    const labelGap = 8;
+    const imageWidth = slotWidth - 36;
+    const imageHeight = Math.round(imageWidth * (366 / 251));
+    const slotHeight = labelHeight + labelGap + imageHeight;
     const gapX = 20;
     const gapY = 15;
+
+    context.textAlign = "center";
 
     MONSTER_TYPES.forEach((type, index) => {
       const column = index % 5;
@@ -458,19 +514,26 @@ async function downloadPoster() {
       const y = startY + row * (slotHeight + gapY);
 
       context.fillStyle = type.accent;
-      context.fillRect(x, y, slotWidth, 32);
+      context.fillRect(x, y, slotWidth, labelHeight);
       context.strokeStyle = "#38322c";
       context.lineWidth = 2;
-      context.strokeRect(x, y, slotWidth, 32);
+      context.strokeRect(x, y, slotWidth, labelHeight);
       context.fillStyle = "#17130f";
-      context.font = `800 ${type.name.length > 12 ? 19 : 22}px Georgia, serif`;
+      const label = type.name.toUpperCase();
+      setFittedCanvasFont(
+        context,
+        label,
+        slotWidth - 14,
+        22,
+        14,
+        "800",
+        "Georgia, serif",
+      );
       context.textBaseline = "middle";
-      context.fillText(type.name.toUpperCase(), x + slotWidth / 2, y + 17);
+      context.fillText(label, x + slotWidth / 2, y + labelHeight / 2 + 1);
 
       const imageX = x + 18;
-      const imageY = y + 40;
-      const imageWidth = slotWidth - 36;
-      const imageHeight = 266;
+      const imageY = y + labelHeight + labelGap;
       const loaded = loadedImages[index];
 
       context.fillStyle = "#2d1510";
@@ -495,11 +558,17 @@ async function downloadPoster() {
     });
 
     context.textBaseline = "alphabetic";
+    context.textAlign = "center";
     context.fillStyle = "#5d554d";
     context.font = "500 24px Arial, sans-serif";
-    context.fillText("Favorite Yu-Gi-Oh! Types", 750, 1935);
+    context.fillText("Favorite Yu-Gi-Oh! Types", 750, 2135);
 
     await savePosterImage(canvas);
+  } catch (error) {
+    console.error(error);
+    window.alert(
+      "The selected card artwork could not be loaded for the image. Please check your connection and try again.",
+    );
   } finally {
     elements.downloadButton.disabled = false;
     elements.downloadButton.textContent = originalText;
