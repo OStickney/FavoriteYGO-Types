@@ -38,6 +38,7 @@ const state = {
   query: "",
   visibleCount: 60,
   cache: new Map(),
+  exportImageCache: new Map(),
   lastFocused: null,
 };
 
@@ -116,6 +117,7 @@ function renderTypeGrid() {
     );
 
     if (selected) {
+      void preloadExportImage(selected);
       const image = document.createElement("img");
       image.src = cardImage(selected);
       image.alt = selected.name;
@@ -309,6 +311,79 @@ async function canvasImage(url) {
   }
 }
 
+function preloadExportImage(card) {
+  const url = cardImage(card, true);
+  if (!url) return Promise.resolve(null);
+  if (!state.exportImageCache.has(url)) {
+    state.exportImageCache.set(url, canvasImage(url));
+  }
+  return state.exportImageCache.get(url);
+}
+
+function canvasBlob(canvas) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("Image export failed"));
+    }, "image/png");
+  });
+}
+
+function downloadBlob(blob, filename) {
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.download = filename;
+  link.href = objectUrl;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+}
+
+async function savePosterImage(canvas) {
+  const filename = "favorite-yugioh-types.png";
+  let blob;
+
+  try {
+    blob = await canvasBlob(canvas);
+  } catch {
+    const link = document.createElement("a");
+    link.download = filename;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    return;
+  }
+
+  const file = new File([blob], filename, { type: "image/png" });
+  const isTouchDevice = navigator.maxTouchPoints > 0;
+  let canShareFile = false;
+
+  try {
+    canShareFile =
+      isTouchDevice &&
+      typeof navigator.share === "function" &&
+      typeof navigator.canShare === "function" &&
+      navigator.canShare({ files: [file] });
+  } catch {
+    canShareFile = false;
+  }
+
+  if (canShareFile) {
+    elements.downloadButton.textContent = "Choose Save Image…";
+    try {
+      await navigator.share({
+        files: [file],
+        title: "Favorite Yu-Gi-Oh! Types",
+      });
+      return;
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+    }
+  }
+
+  downloadBlob(blob, filename);
+}
+
 async function downloadPoster() {
   const originalText = elements.downloadButton.textContent;
   elements.downloadButton.disabled = true;
@@ -333,7 +408,7 @@ async function downloadPoster() {
       Promise.all(
         MONSTER_TYPES.map((type) => {
           const selected = state.selections[type.name];
-          return selected ? canvasImage(cardImage(selected, true)) : null;
+          return selected ? preloadExportImage(selected) : null;
         }),
       ),
     ]);
@@ -424,10 +499,7 @@ async function downloadPoster() {
     context.font = "500 24px Arial, sans-serif";
     context.fillText("Favorite Yu-Gi-Oh! Types", 750, 1935);
 
-    const link = document.createElement("a");
-    link.download = "favorite-yugioh-types.png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
+    await savePosterImage(canvas);
   } finally {
     elements.downloadButton.disabled = false;
     elements.downloadButton.textContent = originalText;
