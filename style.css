@@ -387,6 +387,7 @@ input:focus-visible {
 
 .picker-toolbar {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
@@ -431,6 +432,7 @@ input:focus-visible {
 
 .search-row {
   display: grid;
+  flex: 0 0 auto;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 9px;
   padding: 12px 18px;
@@ -467,9 +469,13 @@ input:focus-visible {
 }
 
 .picker-results {
-  min-height: 320px;
+  min-height: 0;
+  flex: 1 1 auto;
   padding: 14px 18px 24px;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .result-count {
@@ -658,11 +664,15 @@ input:focus-visible {
   }
 
   .modal-backdrop {
+    top: var(--picker-viewport-top, 0px);
+    bottom: auto;
+    height: var(--picker-viewport-height, 100dvh);
     padding: 8px;
   }
 
   .picker-modal {
-    max-height: calc(100vh - 16px);
+    height: 100%;
+    max-height: 100%;
   }
 
   .picker-toolbar {
@@ -678,7 +688,7 @@ input:focus-visible {
   }
 
   .picker-results {
-    padding: 12px;
+    padding: 12px 12px max(28px, calc(12px + env(safe-area-inset-bottom)));
   }
 
   .card-results-grid {

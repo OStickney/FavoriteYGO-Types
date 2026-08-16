@@ -180,6 +180,20 @@ function statusMessage(text, kind = "") {
   return status;
 }
 
+function syncPickerViewport() {
+  const viewport = window.visualViewport;
+  const height = viewport?.height || window.innerHeight;
+  const offsetTop = viewport?.offsetTop || 0;
+  elements.modalBackdrop.style.setProperty(
+    "--picker-viewport-height",
+    `${Math.round(height)}px`,
+  );
+  elements.modalBackdrop.style.setProperty(
+    "--picker-viewport-top",
+    `${Math.round(offsetTop)}px`,
+  );
+}
+
 async function openPicker(typeName) {
   const type = MONSTER_TYPES.find((candidate) => candidate.name === typeName);
   if (!type) return;
@@ -194,9 +208,14 @@ async function openPicker(typeName) {
   elements.searchInput.placeholder = `Search ${type.name} cards…`;
   elements.searchInput.setAttribute("aria-label", `Search ${type.name} cards`);
   elements.clearSearchButton.disabled = true;
+  syncPickerViewport();
   elements.modalBackdrop.hidden = false;
   document.body.classList.add("modal-open");
-  elements.searchInput.focus();
+  if (window.matchMedia("(pointer: fine)").matches) {
+    elements.searchInput.focus();
+  } else {
+    elements.closeButton.focus({ preventScroll: true });
+  }
 
   const loading = statusMessage(`Loading ${type.name} cards…`);
   const spinner = document.createElement("span");
@@ -617,6 +636,10 @@ elements.modalBackdrop.addEventListener("mousedown", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && state.activeType) closePicker();
 });
+
+window.addEventListener("resize", syncPickerViewport);
+window.visualViewport?.addEventListener("resize", syncPickerViewport);
+window.visualViewport?.addEventListener("scroll", syncPickerViewport);
 
 elements.clearAllButton.addEventListener("click", () => {
   state.selections = {};
